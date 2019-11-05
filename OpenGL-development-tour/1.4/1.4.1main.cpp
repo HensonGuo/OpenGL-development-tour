@@ -50,7 +50,7 @@ int main()
 	}
 	#pragma endregion GLAD
 
-	Shader ourShader("1.4.0vertex.txt", "1.4.0fragment.txt");
+	Shader ourShader("1.4.1vertex.txt", "1.4.1fragment.txt");
 
 	#pragma region 顶点数据
 	//顶点数据
@@ -97,7 +97,8 @@ int main()
 
 	#pragma region 材质
 	// 加载材质
-	unsigned int texture1;//纹理也是使用ID引用的
+	unsigned int texture1, texture2;//纹理也是使用ID引用的
+	// texture1
 	glGenTextures(1, &texture1);//glGenTextures先输入要生成纹理的数量，然后把它们储存在第二个参数的`unsigned int`数组中
 	glBindTexture(GL_TEXTURE_2D, texture1);
 	// 为当前绑定的纹理对象设置环绕、过滤方式
@@ -107,6 +108,7 @@ int main()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	// 加载并生成纹理
 	int width, height, nrChannels;
+	stbi_set_flip_vertically_on_load(true);
 	unsigned char* data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
 	if (data)
 	{
@@ -118,9 +120,34 @@ int main()
 		std::cout << "Failed to load texture" << std::endl;
 	}
 	stbi_image_free(data);
+	// texture2
+    glGenTextures(1, &texture2);
+    glBindTexture(GL_TEXTURE_2D, texture2);
+	// 为当前绑定的纹理对象设置环绕、过滤方式
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// 加载并生成纹理
+	data = stbi_load("awesomeface.png", &width, &height, &nrChannels, 0);
+	if (data)
+	{
+		// note that the awesomeface.png has transparency and thus an alpha channel, so make sure to tell OpenGL the data type is of GL_RGBA
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "Failed to load texture" << std::endl;
+	}
+	stbi_image_free(data);
 	#pragma endregion 加载材质
 
 	#pragma region 渲染
+
+	ourShader.use(); // 别忘记在激活着色器前先设置uniform！
+	glUniform1i(glGetUniformLocation(ourShader.ID, "texture1"), 0); // 手动设置
+	ourShader.setInt("texture2", 1); // 或者使用着色器类设置
 
 	// 渲染循环
 	while (!glfwWindowShouldClose(window))
@@ -132,7 +159,10 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		// 绑定材质
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture2);
 		// 渲染箱子
 		ourShader.use();
 		glBindVertexArray(VAO);

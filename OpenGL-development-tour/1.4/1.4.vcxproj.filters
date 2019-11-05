@@ -27,12 +27,21 @@
     <ClCompile Include="shader.cpp">
       <Filter>头文件</Filter>
     </ClCompile>
+    <ClCompile Include="1.4.1main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="1.4.0fragment.txt">
       <Filter>源文件\Shader</Filter>
     </Text>
     <Text Include="1.4.0vertex.txt">
+      <Filter>源文件\Shader</Filter>
+    </Text>
+    <Text Include="1.4.1fragment.txt">
+      <Filter>源文件\Shader</Filter>
+    </Text>
+    <Text Include="1.4.1vertex.txt">
       <Filter>源文件\Shader</Filter>
     </Text>
   </ItemGroup>
