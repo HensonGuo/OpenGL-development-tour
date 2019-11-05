@@ -4,6 +4,9 @@
 
 #include "shader.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
@@ -41,27 +44,19 @@ int main()
 		return -1;
 	}
 
-	Shader ourShader("1.3.2vertex.txt", "1.3.2fragment.txt");
+	Shader ourShader("1.4.0vertex.txt", "1.4.0fragment.txt");
 
 	//顶点数据
-	//float vertices[] = {
-	//	0.5f, 0.5f, 0.0f,   // 0号点
-	//	0.5f, -0.5f, 0.0f,  // 1号点
-	//	-0.5f, -0.5f, 0.0f, // 2号点
-	//	-0.5f, 0.5f, 0.0f   // 3号点
-	//};
-	//unsigned int indices[] = { // 注意索引从0开始!
-	//	0, 1, 3, // 第一个三角形
-	//	1, 2, 3  // 第二个三角形
-	//};
 	float vertices[] = {
-		// 位置              // 颜色
-		 0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // 右下
-		-0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // 左下
-		 0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // 顶部
+		//     ---- 位置 ----       ---- 颜色 ----     - 纹理坐标 -
+			 0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // 右上
+			 0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // 右下
+			-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // 左下
+			-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // 左上
 	};
-	unsigned int indices[] = { // 注意索引从0开始!
-		0, 1, 2 
+	unsigned int indices[] = {
+		0, 1, 3, // first triangle
+		1, 2, 3  // second triangle
 	};
 
 	// 初始化缓存对象
@@ -80,17 +75,38 @@ int main()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 	// 4. 设定顶点属性指针
-	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-	//glEnableVertexAttribArray(0);
 	// 位置属性
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	// 颜色属性
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
+	// 纹理坐标属性
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	glEnableVertexAttribArray(2);
 
-	////线框模式wireframe
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	// 加载材质
+	unsigned int texture1;//纹理也是使用ID引用的
+	glGenTextures(1, &texture1);//glGenTextures先输入要生成纹理的数量，然后把它们储存在第二个参数的`unsigned int`数组中
+	glBindTexture(GL_TEXTURE_2D, texture1);
+	// 为当前绑定的纹理对象设置环绕、过滤方式
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// 加载并生成纹理
+	int width, height, nrChannels;
+	unsigned char* data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "Failed to load texture" << std::endl;
+	}
+	stbi_image_free(data);
 
 	ourShader.use();
 
@@ -104,12 +120,7 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
-
-		// 更新uniform
-		float timeValue = glfwGetTime();
-		float rightValue = (sin(timeValue) / 2.0f);
-		ourShader.setFloat("xOffset", rightValue);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 		// 检查并调用事件，交换缓冲
 		glfwSwapBuffers(window);
