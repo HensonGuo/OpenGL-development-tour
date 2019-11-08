@@ -27,6 +27,18 @@
     <ClCompile Include="1.7.0main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="1.7.1main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="1.7.2main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="1.7.3main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="camera.cpp">
+      <Filter>头文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="1.7.0fragment.txt">
@@ -38,6 +50,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="shader.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="camera.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
